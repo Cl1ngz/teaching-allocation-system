@@ -13,3 +13,6 @@ git checkout dev
 git pull origin dev
 git checkout -b feat/your-feature-name
 ```
+
+## Commits name
+`feat(TICKET-ID): description`
