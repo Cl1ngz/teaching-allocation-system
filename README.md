@@ -16,3 +16,21 @@ git checkout -b feat/your-feature-name
 
 ## Commits name
 `feat(TICKET-ID): description`
+
+## Running the backend
+
+Requirements: Java 21.
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+On Windows, run `mvnw.cmd spring-boot:run` from the `backend` directory.
+The backend runs at `http://localhost:8080`.
+
+Check the backend health with:
+
+```bash
+curl http://localhost:8080/api/v1/health
+```
