@@ -1,3 +1,5 @@
+# Workflow
+
 ## Git Workflow
 
 **Branching Structure:**
@@ -16,3 +18,12 @@ git checkout -b feat/your-feature-name
 
 ## Commits name
 `feat(TICKET-ID): description`
+
+# Frontend
+The frontend is a Vue 3 app built with Vite and TypeScript.
+To install dependencies, run `npm i` in the frontend directory.
+To run the development server, run `npm run dev` in the frontend directory.
+
+Vue Router with file-based routing is used for navigation. Pinia Colada is used for data fetching.
+
+The API base URL is set by the Vite configuration, depending on the mode.
