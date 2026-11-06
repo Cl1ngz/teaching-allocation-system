@@ -7,9 +7,9 @@ export default defineConfig(({ mode }) => {
     let apiUrl: string;
     if (mode == "development") {
         // TODO: substitute with wherever the local server ends up
-        apiUrl = "http://localhost:3000/";
+        apiUrl = "http://localhost:3000";
     } else {
-        throw new Error("Unknown API URL for mode " + mode);
+        apiUrl = "/api";
     }
 
     return {
