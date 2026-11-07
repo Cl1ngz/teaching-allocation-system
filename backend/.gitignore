@@ -37,3 +37,6 @@ application-local.properties
 application-local.yml
 *.env
 !.env.example
+
+# antigravity ai
+/skills/*
