@@ -1,3 +1,5 @@
+# Workflow
+
 ## Git Workflow
 
 **Branching Structure:**
@@ -17,20 +19,11 @@ git checkout -b feat/your-feature-name
 ## Commits name
 `feat(TICKET-ID): description`
 
-## Running the backend
+# Frontend
+The frontend is a Vue 3 app built with Vite and TypeScript.
+To install dependencies, run `npm i` in the frontend directory.
+To run the development server, run `npm run dev` in the frontend directory.
 
-Requirements: Java 21.
+Vue Router with file-based routing is used for navigation. Pinia Colada is used for data fetching.
 
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-
-On Windows, run `mvnw.cmd spring-boot:run` from the `backend` directory.
-The backend runs at `http://localhost:8080`.
-
-Check the backend health with:
-
-```bash
-curl http://localhost:8080/api/v1/health
-```
+The API base URL is set by the Vite configuration, depending on the mode.
