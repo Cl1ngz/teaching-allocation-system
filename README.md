@@ -26,4 +26,4 @@ To run the development server, run `npm run dev` in the frontend directory.
 
 Vue Router with file-based routing is used for navigation. Pinia Colada is used for data fetching.
 
-The API base URL is set by the Vite configuration, depending on the mode.
+The API base URL is set by the Vite configuration, depending on the mode, and can be overridden via the `TAS_API_URL` environment variable.
