@@ -19,6 +19,21 @@ git checkout -b feat/your-feature-name
 ## Commits name
 `feat(TICKET-ID): description`
 
+# Backend database
+
+The backend requires a PostgreSQL database. Connection parameters are passed through
+environment variables (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`,
+`SPRING_DATASOURCE_PASSWORD`), the same ones `compose.yaml` provides in Docker.
+For a local run, optionally keep them in `backend/.env` (see `backend/.env.example`).
+
+Full setup guide: [backend/docs/database-setup.md](backend/docs/database-setup.md)
+
+Check the database connection of a running backend with:
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
 # Frontend
 The frontend is a Vue 3 app built with Vite and TypeScript.
 To install dependencies, run `npm i` in the frontend directory.
