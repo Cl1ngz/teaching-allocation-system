@@ -12,13 +12,13 @@ import pl.pb.tas.teaching_allocation_system.models.HelloResponse;
  * and HTTP communication.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class HelloController {
 
     private static final String HELLO_MESSAGE = "Teaching Allocation System API";
 
     /**
-     * Handles GET /api/hello request.
+     * Handles GET /api/v1/hello request.
      *
      * @return 200 OK with {@link HelloResponse} in JSON format
      */
