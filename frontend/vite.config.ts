@@ -1,15 +1,23 @@
 import Vue from "@vitejs/plugin-vue";
+import { env } from "node:process";
 import { defineConfig } from "vite";
 import VueRouter from "vue-router/vite";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
     let apiUrl: string;
-    if (mode == "development") {
-        // TODO: substitute with wherever the local server ends up
-        apiUrl = "http://localhost:3000";
+    if (env.TAS_API_URL) {
+        apiUrl = env.TAS_API_URL;
     } else {
-        apiUrl = "/api";
+        if (mode == "development") {
+            apiUrl = "http://localhost:8080/api";
+        } else if (mode == "production") {
+            apiUrl = "/api";
+        } else {
+            throw new Error(
+                `Unknown API URL for mode ${mode}; try setting the TAS_API_URL environment variable`,
+            );
+        }
     }
 
     return {
