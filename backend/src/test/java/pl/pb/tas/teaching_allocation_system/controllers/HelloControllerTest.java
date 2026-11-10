@@ -24,9 +24,9 @@ class HelloControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("GET /api/hello returns 200 OK and expected JSON message")
+    @DisplayName("GET /api/v1/hello returns 200 OK and expected JSON message")
     void shouldReturnHelloMessage() throws Exception {
-        mockMvc.perform(get("/api/hello").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/v1/hello").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message", is("Teaching Allocation System API")));
