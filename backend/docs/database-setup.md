@@ -3,7 +3,7 @@
 Instrukcja przygotowania lokalnej bazy danych i połączenia z nią dla backendu Teaching Allocation System.
 
 > Zakres: instalacja PostgreSQL, utworzenie bazy i użytkownika oraz konfiguracja połączenia przez zmienne środowiskowe.
-> Schemat bazy (tabele, encje, migracje) jest realizowany w osobnych zadaniach. Uruchamianie całości w Dockerze opisuje `compose.yaml`.
+> Schemat bazy (tabele, ograniczenia) tworzą migracje Flyway przy starcie backendu: zob. [database-migrations.md](database-migrations.md). Uruchamianie całości w Dockerze opisuje `compose.yaml`.
 
 ## 1. Wymagania
 
@@ -106,7 +106,7 @@ cd backend
 
 Połączenie działa poprawnie, jeśli:
 
-1. Aplikacja startuje bez błędów, a w logach nie ma wyjątków związanych z `HikariPool` ani `PSQLException`.
+1. Aplikacja startuje bez błędów, a w logach nie ma wyjątków związanych z `HikariPool` ani `PSQLException`. Przy pierwszym starcie na pustej bazie Flyway tworzy schemat (wpisy `Migrating schema "public" to version ...`).
 2. Endpoint health zwraca status `UP`:
 
 ```powershell
@@ -127,7 +127,7 @@ Gdy baza przestanie odpowiadać po starcie aplikacji, status zmieni się na `DOW
 
 ## 8. Testy automatyczne
 
-Test `contextLoads` korzysta z profilu `test`, w którym konfiguracja bazy jest wyłączona, więc `.\mvnw.cmd test` nie wymaga uruchomionego PostgreSQL. Testy integracyjne z bazą są przedmiotem zadania SF-12.
+Test `contextLoads` korzysta z profilu `test`, w którym konfiguracja bazy i migracje Flyway są wyłączone, więc `.\mvnw.cmd test` nie wymaga uruchomionego PostgreSQL. Testy integracyjne z bazą są przedmiotem zadania SF-12.
 
 ## 9. Rozwiązywanie problemów
 
