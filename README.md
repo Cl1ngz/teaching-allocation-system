@@ -28,8 +28,6 @@ For a local run, optionally keep them in `backend/.env` (see `backend/.env.examp
 
 Full setup guide: [backend/docs/database-setup.md](backend/docs/database-setup.md)
 
-The database schema is created by Flyway migrations on backend startup: [backend/docs/database-migrations.md](backend/docs/database-migrations.md)
-
 Check the database connection of a running backend with:
 
 ```bash
