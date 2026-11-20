@@ -149,3 +149,19 @@ Tabele tworzy Flyway przy starcie backendu z plików w `src/main/resources/db/mi
 Nowa migracja to kolejny plik `V<numer>__<opis>.sql`, np. `V10__add_course_language.sql`. Migracji scalonej do `dev` nie edytujemy: Flyway porówna sumę kontrolną i aplikacja nie wystartuje. Zmiany robimy następną migracją.
 
 Gdy lokalna baza jest w złym stanie (np. po zmianie niescalonej migracji): `docker compose down -v` albo `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`.
+
+## 11. Dane przykładowe (profil `dev`)
+
+Słowniki (stopnie, stanowiska, formy zajęć) ładują się zawsze. Dane przykładowe, czyli 7 jednostek, 15 fikcyjnych nauczycieli i ich zatrudnienia, ładują się tylko z profilem `dev`. Plik `src/main/resources/db/dev-data/R__dev_sample_data.sql` opisuje w komentarzu, które rekordy są przypadkami brzegowymi. Każdy rekord przykładowy ma `usos_id` zaczynające się od `DEV-`.
+
+**Włączenie.** W Dockerze w pliku `.env` ustaw `SPRING_PROFILES_ACTIVE=dev`. Jeśli masz starszy `.env`, dopisz tę linię z `.env.example`. Lokalnie: `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"` albo w IntelliJ w konfiguracji uruchomienia *Active profiles: dev*. Bez profilu baza ma tylko słowniki.
+
+**Odświeżenie.** Zmiana pliku `R__dev_sample_data.sql` powoduje, że przy następnym starcie z `dev` Flyway uruchomi go ponownie i doda brakujące rekordy, bez duplikatów. Żeby przywrócić dane do stanu początkowego, usuń je (niżej) i uruchom backend z `dev`.
+
+**Usunięcie** (schemat i słowniki zostają):
+
+```powershell
+Get-Content backend/docs/dev-sample-data-cleanup.sql | docker exec -i tas-db psql -U tas_user -d tas_db
+```
+
+Lokalnie: `psql -U tas_user -h localhost -d tas_db -f backend/docs/dev-sample-data-cleanup.sql`. Pełny reset bazy: `docker compose down -v`.
