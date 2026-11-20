@@ -128,6 +128,8 @@ Gdy baza przestanie odpowiadać po starcie aplikacji, status zmieni się na `DOW
 
 Test `contextLoads` korzysta z profilu `test`, w którym konfiguracja bazy i migracje Flyway są wyłączone, więc `.\mvnw.cmd test` nie wymaga uruchomionego PostgreSQL. Testy integracyjne z bazą są przedmiotem zadania SF-12.
 
+Testy repozytoriów (np. `TeacherRepositoryTest`) działają na prawdziwym PostgreSQL: Testcontainers uruchamia na czas testów pustą bazę w kontenerze, Flyway wykonuje na niej migracje, a Hibernate sprawdza zgodność encji ze schematem. Wymagają działającego Docker Desktop; bez Dockera są pomijane, a pozostałe testy działają dalej.
+
 ## 9. Rozwiązywanie problemów
 
 | Objaw | Przyczyna | Rozwiązanie |
