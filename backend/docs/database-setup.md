@@ -141,3 +141,11 @@ Test `contextLoads` korzysta z profilu `test`, w którym konfiguracja bazy i mig
 | `/actuator/health` zwraca `DOWN` | Brak połączenia z bazą | Sprawdź logi aplikacji i parametry z sekcji 4 |
 | `docker compose up`: port 5432 zajęty | Lokalny PostgreSQL działa na tym samym porcie | Zobacz sekcję 7 |
 | `psql` nie jest rozpoznawane | Brak w `PATH` | Dodaj `C:\Program Files\PostgreSQL\<wersja>\bin` do `PATH` |
+
+## 10. Migracje schematu (Flyway)
+
+Tabele tworzy Flyway przy starcie backendu z plików w `src/main/resources/db/migration`. Wykonane migracje zapisuje w tabeli `flyway_schema_history`, więc przy kolejnym starcie uruchamia tylko nowe. Pliki odpowiadają obszarom modelu danych z Confluence: `V1`–`V2` struktura i kadra (SF-14), `V3`–`V9` pozostałe obszary (SF-15).
+
+Nowa migracja to kolejny plik `V<numer>__<opis>.sql`, np. `V10__add_course_language.sql`. Migracji scalonej do `dev` nie edytujemy: Flyway porówna sumę kontrolną i aplikacja nie wystartuje. Zmiany robimy następną migracją.
+
+Gdy lokalna baza jest w złym stanie (np. po zmianie niescalonej migracji): `docker compose down -v` albo `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`.
