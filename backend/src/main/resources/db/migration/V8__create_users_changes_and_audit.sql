@@ -102,12 +102,13 @@ CREATE TABLE assignment_change_requests (
     )
 );
 
+-- No indexes on old_teacher_id and decided_by: nobody searches by them, and the
+-- referenced teachers / users are deactivated, never deleted, so foreign key
+-- checks on delete do not need them either (agreed in the SF-15 review).
 CREATE INDEX ix_acr_class_group_id ON assignment_change_requests (class_group_id);
 CREATE INDEX ix_acr_assignment_id ON assignment_change_requests (assignment_id);
-CREATE INDEX ix_acr_old_teacher_id ON assignment_change_requests (old_teacher_id);
 CREATE INDEX ix_acr_new_teacher_id ON assignment_change_requests (new_teacher_id);
 CREATE INDEX ix_acr_requested_by ON assignment_change_requests (requested_by);
-CREATE INDEX ix_acr_decided_by ON assignment_change_requests (decided_by);
 
 -- Temporary substitution: hours taken over from an assignment (Z5). The
 -- assignment determines the group and the substituted teacher. "Substitute
@@ -146,7 +147,7 @@ CREATE TABLE substitutions (
 CREATE INDEX ix_substitutions_assignment_id ON substitutions (assignment_id);
 CREATE INDEX ix_substitutions_substitute_teacher_id ON substitutions (substitute_teacher_id);
 CREATE INDEX ix_substitutions_requested_by ON substitutions (requested_by);
-CREATE INDEX ix_substitutions_decided_by ON substitutions (decided_by);
+-- No index on decided_by, for the same reason as in assignment_change_requests.
 
 -- Append-only change log (SF-13, deviation O3): entity_id has no foreign key
 -- and the values are jsonb. No updated_at / version, rows are never modified.
