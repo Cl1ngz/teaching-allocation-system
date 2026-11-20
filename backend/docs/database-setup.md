@@ -3,7 +3,6 @@
 Instrukcja przygotowania lokalnej bazy danych i połączenia z nią dla backendu Teaching Allocation System.
 
 > Zakres: instalacja PostgreSQL, utworzenie bazy i użytkownika oraz konfiguracja połączenia przez zmienne środowiskowe.
-> Schemat bazy (tabele, ograniczenia) tworzą migracje Flyway przy starcie backendu: zob. [database-migrations.md](database-migrations.md). Uruchamianie całości w Dockerze opisuje `compose.yaml`.
 
 ## 1. Wymagania
 
