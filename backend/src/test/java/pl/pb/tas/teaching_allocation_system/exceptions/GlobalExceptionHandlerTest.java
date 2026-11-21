@@ -7,12 +7,15 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -150,6 +153,20 @@ class GlobalExceptionHandlerTest {
         assertThat(enumCodes).isEqualTo(activeCodes);
     }
 
+    @ParameterizedTest
+    @EnumSource(ErrorCode.class)
+    @DisplayName("Every ErrorCode keeps its HTTP status, code and default problem detail")
+    void everyErrorCodeKeepsItsContract(ErrorCode errorCode) throws Exception {
+        mockMvc.perform(get("/trigger/error-code/{code}", errorCode.name()))
+                .andExpect(status().is(errorCode.getStatus().value()))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code", is(errorCode.name())))
+                .andExpect(jsonPath("$.status", is(errorCode.getStatus().value())))
+                .andExpect(jsonPath("$.detail", is(errorCode.getDefaultMessage())))
+                .andExpect(jsonPath("$.errorId", notNullValue()))
+                .andExpect(jsonPath("$.timestamp", notNullValue()));
+    }
+
     @RestController
     static class ErrorTriggerController {
 
@@ -163,6 +180,11 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/trigger/app-error")
         void appError() {
             throw new ApplicationException(ErrorCode.CONFLICT, "Subject already exists.");
+        }
+
+        @GetMapping("/trigger/error-code/{code}")
+        void errorCode(@PathVariable ErrorCode code) {
+            throw new ApplicationException(code);
         }
 
         @GetMapping("/trigger/db-down")
