@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import jakarta.validation.ConstraintViolationException;
 
 /**
  * Central exception handling. Every error is returned as an RFC 9457 Problem Details
@@ -99,6 +100,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         logIssue(errorId, code, code.getStatus(), ex, request);
         ProblemDetail problem = problem(code, code.getStatus(), code.getDefaultMessage(), fields, errorId);
         return super.handleExceptionInternal(ex, problem, headers, code.getStatus(), request);
+    }
+
+    /** Constraint violations on @Validated controller method parameters. */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
+        List<ApiFieldError> fields = ex.getConstraintViolations().stream()
+                .map(violation -> new ApiFieldError(
+                        violation.getPropertyPath().toString(),
+                        violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
+                        violation.getMessage()))
+                .toList();
+        ErrorCode code = ErrorCode.VALIDATION_ERROR;
+        String errorId = newErrorId();
+        logIssue(errorId, code, code.getStatus(), ex, request);
+        return respond(problem(code, code.getStatus(), code.getDefaultMessage(), fields, errorId));
     }
 
     /** All other framework exceptions (404, 405, unreadable body, wrong parameter type, ...). */
