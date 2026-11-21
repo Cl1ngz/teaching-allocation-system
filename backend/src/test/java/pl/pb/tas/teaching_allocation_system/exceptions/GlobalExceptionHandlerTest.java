@@ -1,6 +1,8 @@
 package pl.pb.tas.teaching_allocation_system.exceptions;
 
 import java.time.Clock;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +26,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -111,6 +114,40 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.errorId", notNullValue()))
                 .andExpect(content().string(not(containsString("secret_table"))))
                 .andExpect(content().string(not(containsString("IllegalStateException"))));
+    }
+
+    @Test
+    @DisplayName("Unknown URL returns NOT_FOUND in the unified problem format")
+    void unknownUrl() throws Exception {
+        mockMvc.perform(get("/does-not-exist"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code", is("NOT_FOUND")))
+                .andExpect(jsonPath("$.status", is(404)))
+                .andExpect(jsonPath("$.detail", is("The requested resource was not found.")))
+                .andExpect(jsonPath("$.errorId", notNullValue()))
+                .andExpect(jsonPath("$.timestamp", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("Every error code is covered by the explicit error-code contract")
+    void everyErrorCodeIsCoveredByTheContract() {
+        Set<String> activeCodes = Set.of(
+                "VALIDATION_ERROR",
+                "MALFORMED_REQUEST",
+                "NOT_FOUND",
+                "METHOD_NOT_ALLOWED",
+                "CONFLICT",
+                "SERVICE_UNAVAILABLE",
+                "INTERNAL_ERROR",
+                "UNAUTHENTICATED",
+                "ACCESS_DENIED");
+
+        Set<String> enumCodes = java.util.Arrays.stream(ErrorCode.values())
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+
+        assertThat(enumCodes).isEqualTo(activeCodes);
     }
 
     @RestController
