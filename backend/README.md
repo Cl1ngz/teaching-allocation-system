@@ -23,6 +23,11 @@ mvnw.cmd spring-boot:run
 
 The application runs on `http://localhost:8080`.
 
+## OpenAPI Documentation
+
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+
 ## Running Tests
 
 To run the automated test suite:
@@ -70,4 +75,24 @@ System health check endpoint.
 
 ```bash
 curl -i http://localhost:8080/api/v1/health
+```
+
+### 3. Teacher List Endpoint
+
+Returns a paginated list of academic teachers with the active primary employment.
+
+- **URL:** `/api/v1/teachers`
+- **Method:** `GET`
+- **Authentication:** None (Public)
+- **Response HTTP Code:** `200 OK`
+- **Query Parameters:**
+  - `page` — zero-based page number, default `0`
+  - `size` — page size from `1` to `100`, default `20`
+  - `sort` — sort field and optional direction, for example `lastName,asc`
+  - Supported fields: `id`, `firstName`, `lastName`, `email`, `active`, `degreeCode`, `unitName`, `positionName`
+
+**Curl Example:**
+
+```bash
+curl -i "http://localhost:8080/api/v1/teachers?page=0&size=20&sort=lastName,asc&sort=firstName,asc"
 ```
