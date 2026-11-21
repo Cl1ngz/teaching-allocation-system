@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import pl.pb.tas.teaching_allocation_system.exceptions.GlobalExceptionHandler;
 import pl.pb.tas.teaching_allocation_system.models.PageResponse;
 import pl.pb.tas.teaching_allocation_system.models.TeacherListItem;
 import pl.pb.tas.teaching_allocation_system.security.SecurityConfig;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TeacherController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, GlobalExceptionHandler.class})
 class TeacherControllerTest {
 
 	@Autowired
@@ -65,7 +66,8 @@ class TeacherControllerTest {
 	void rejectsInvalidSize() throws Exception {
 		mockMvc.perform(get("/api/v1/teachers").param("size", "101"))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.message").exists());
+				.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+				.andExpect(jsonPath("$.status").value(400));
 	}
 
 	@Test
@@ -75,6 +77,8 @@ class TeacherControllerTest {
 
 		mockMvc.perform(get("/api/v1/teachers"))
 				.andExpect(status().isServiceUnavailable())
-				.andExpect(jsonPath("$.message").value("The database service is unavailable."));
+				.andExpect(jsonPath("$.code").value("SERVICE_UNAVAILABLE"))
+				.andExpect(jsonPath("$.status").value(503))
+				.andExpect(jsonPath("$.detail").value("The service is temporarily unavailable. Try again later."));
 	}
 }
