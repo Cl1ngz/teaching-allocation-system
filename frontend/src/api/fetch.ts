@@ -1,6 +1,6 @@
 import { ApiError, FetchError, ResponseSyntaxError } from "./error";
 
-const apiBase = new URL(API_BASE_URL).href.replace(/\/$/, "");
+const apiBase = new URL(API_BASE_URL, window.location.origin).href.replace(/\/$/, "");
 
 /**
  * A simple wrapper to fetch data from the API.
