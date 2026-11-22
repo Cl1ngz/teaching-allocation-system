@@ -4,8 +4,8 @@ const apiBase = new URL(API_BASE_URL).href.replace(/\/$/, "");
 
 /**
  * A simple wrapper to fetch data from the API.
- * This is appropriate if the data isn't JSON;
- * normally apiFetchJson should be used instead.
+ * The typesafe API wrappers use this function in combination
+ * with a format parser like responseToJson.
  */
 export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
     const url = new URL(apiBase + (path.startsWith("/") ? "" : "/") + path, window.location.origin);
