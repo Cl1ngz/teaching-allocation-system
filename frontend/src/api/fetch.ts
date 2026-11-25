@@ -13,11 +13,13 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
         const res = await fetch(url, init);
         if (res.ok) {
             return res;
+        } else if (res.status === 502 || res.status === 504) {
+            throw new FetchError(new Error(`Gateway returned HTTP ${res.status}`));
         } else {
             throw new ApiError(await res.json());
         }
     } catch (err) {
-        if (err instanceof ApiError) {
+        if (err instanceof ApiError || err instanceof FetchError) {
             throw err;
         } else if (err instanceof SyntaxError) {
             throw new ResponseSyntaxError(err);

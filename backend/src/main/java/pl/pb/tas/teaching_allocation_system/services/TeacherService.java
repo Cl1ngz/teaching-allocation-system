@@ -11,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import pl.pb.tas.teaching_allocation_system.exceptions.ApplicationException;
+import pl.pb.tas.teaching_allocation_system.exceptions.ErrorCode;
 import pl.pb.tas.teaching_allocation_system.models.PageResponse;
 import pl.pb.tas.teaching_allocation_system.models.TeacherListItem;
 import pl.pb.tas.teaching_allocation_system.models.TeacherSummary;
@@ -43,11 +45,11 @@ public class TeacherService {
 	public PageResponse<TeacherListItem> getTeachers(
 			int page, Integer size, String[] sort) {
 		if (page < 0) {
-			throw new IllegalArgumentException("Parameter 'page' must be greater than or equal to 0.");
+			throw invalidParameter("Parameter 'page' must be greater than or equal to 0.");
 		}
 		int resolvedSize = size == null ? DEFAULT_SIZE : size;
 		if (resolvedSize < 1 || resolvedSize > MAX_SIZE) {
-			throw new IllegalArgumentException("Parameter 'size' must be between 1 and 100.");
+			throw invalidParameter("Parameter 'size' must be between 1 and 100.");
 		}
 
 		Sort resolvedSort = resolveSort(sort);
@@ -81,12 +83,12 @@ public class TeacherService {
 		Sort sortResult = Sort.unsorted();
 		for (String value : sort) {
 			if (value == null || value.isBlank()) {
-				throw new IllegalArgumentException("Parameter 'sort' contains an invalid value.");
+				throw invalidParameter("Parameter 'sort' contains an invalid value.");
 			}
 			String[] parts = value.split(",", -1);
 			String field = parts[0].trim();
 			if (!SORT_FIELDS.contains(field)) {
-				throw new IllegalArgumentException("Unsupported sort field: " + field + ".");
+				throw invalidParameter("Unsupported sort field: " + field + ".");
 			}
 
 			Sort.Direction direction = Sort.Direction.ASC;
@@ -94,14 +96,17 @@ public class TeacherService {
 				try {
 					direction = Sort.Direction.fromString(parts[1].trim().toUpperCase(Locale.ROOT));
 				} catch (IllegalArgumentException exception) {
-					throw new IllegalArgumentException(
-							"Parameter 'sort' has an invalid direction. Use asc or desc.");
+					throw invalidParameter("Parameter 'sort' has an invalid direction. Use asc or desc.");
 				}
 			} else if (parts.length != 1) {
-				throw new IllegalArgumentException("Parameter 'sort' must use the format field or field,direction.");
+				throw invalidParameter("Parameter 'sort' must use the format field or field,direction.");
 			}
 			sortResult = sortResult.and(Sort.by(direction, SORT_PROPERTIES.get(field)));
 		}
 		return sortResult;
+	}
+
+	private static ApplicationException invalidParameter(String message) {
+		return new ApplicationException(ErrorCode.VALIDATION_ERROR, message);
 	}
 }

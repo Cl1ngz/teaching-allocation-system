@@ -11,6 +11,7 @@ import pl.pb.tas.teaching_allocation_system.models.PageResponse;
 import pl.pb.tas.teaching_allocation_system.models.TeacherListItem;
 import pl.pb.tas.teaching_allocation_system.models.TeacherSummary;
 import pl.pb.tas.teaching_allocation_system.repositories.TeacherRepository;
+import pl.pb.tas.teaching_allocation_system.exceptions.ApplicationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,11 +42,11 @@ class TeacherServiceTest {
 	@Test
 	void rejectsInvalidPageSizeAndSort() {
 		assertThatThrownBy(() -> service.getTeachers(-1, 20, null))
-				.isInstanceOf(IllegalArgumentException.class);
+				.isInstanceOf(ApplicationException.class);
 		assertThatThrownBy(() -> service.getTeachers(0, 101, null))
-				.isInstanceOf(IllegalArgumentException.class);
+				.isInstanceOf(ApplicationException.class);
 		assertThatThrownBy(() -> service.getTeachers(0, 20, new String[]{"unknown,asc"}))
-				.isInstanceOf(IllegalArgumentException.class);
+				.isInstanceOf(ApplicationException.class);
 	}
 
 	@Test

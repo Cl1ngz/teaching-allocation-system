@@ -11,13 +11,19 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import pl.pb.tas.teaching_allocation_system.exceptions.GlobalExceptionHandler;
+import pl.pb.tas.teaching_allocation_system.exceptions.ApplicationException;
+import pl.pb.tas.teaching_allocation_system.exceptions.ErrorCode;
 import pl.pb.tas.teaching_allocation_system.models.PageResponse;
 import pl.pb.tas.teaching_allocation_system.models.TeacherListItem;
 import pl.pb.tas.teaching_allocation_system.security.SecurityConfig;
 import pl.pb.tas.teaching_allocation_system.services.TeacherService;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,7 +73,39 @@ class TeacherControllerTest {
 		mockMvc.perform(get("/api/v1/teachers").param("size", "101"))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-				.andExpect(jsonPath("$.status").value(400));
+				.andExpect(jsonPath("$.status").value(400))
+				.andExpect(jsonPath("$.errorId").isNotEmpty())
+				.andExpect(jsonPath("$.timestamp").isNotEmpty());
+	}
+
+	@Test
+	void rejectsUnsupportedSortWithoutExposingInput() throws Exception {
+		when(teacherService.getTeachers(eq(0), isNull(), any(String[].class)))
+				.thenThrow(new ApplicationException(
+						ErrorCode.VALIDATION_ERROR, "Unsupported sort field: privateColumn."));
+
+		mockMvc.perform(get("/api/v1/teachers").param("sort", "privateColumn,asc"))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+				.andExpect(jsonPath("$.detail").value("Request validation failed."))
+				.andExpect(jsonPath("$.errorId").isNotEmpty())
+				.andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("privateColumn"))));
+	}
+
+	@Test
+	void returnsUnifiedNotFoundAndMethodNotAllowedErrors() throws Exception {
+		mockMvc.perform(get("/api/v1/unknown"))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.code").value("NOT_FOUND"))
+				.andExpect(jsonPath("$.errorId").isNotEmpty())
+				.andExpect(jsonPath("$.timestamp").isNotEmpty());
+
+		mockMvc.perform(post("/api/v1/teachers"))
+				.andExpect(status().isMethodNotAllowed())
+				.andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+				.andExpect(jsonPath("$.errorId").isNotEmpty())
+				.andExpect(jsonPath("$.timestamp").isNotEmpty());
 	}
 
 	@Test
@@ -79,6 +117,10 @@ class TeacherControllerTest {
 				.andExpect(status().isServiceUnavailable())
 				.andExpect(jsonPath("$.code").value("SERVICE_UNAVAILABLE"))
 				.andExpect(jsonPath("$.status").value(503))
-				.andExpect(jsonPath("$.detail").value("The service is temporarily unavailable. Try again later."));
+				.andExpect(jsonPath("$.detail").value("The service is temporarily unavailable. Try again later."))
+				.andExpect(jsonPath("$.errorId").isNotEmpty())
+				.andExpect(jsonPath("$.timestamp").isNotEmpty())
+				.andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("down"))));
 	}
 }
