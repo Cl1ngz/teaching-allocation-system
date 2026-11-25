@@ -39,7 +39,10 @@ public class HelloController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "API is reachable",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = HelloResponse.class))),
+                            schema = @Schema(implementation = HelloResponse.class),
+                            examples = @ExampleObject(value = """
+                                { "status": "UP" : "2026-11-25T16:30:00Z" }
+                                """))),
             @ApiResponse(responseCode = "405", description = "HTTP method not allowed (METHOD_NOT_ALLOWED)",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiErrorResponse.class),
