@@ -3,6 +3,7 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 import { routes } from "vue-router/auto-routes";
+import { DataLoaderPlugin } from "vue-router/experimental";
 import { ApiError } from "./api/error.ts";
 import App from "./App.vue";
 import "./style.css";
@@ -13,7 +14,8 @@ const router = createRouter({
 });
 
 createApp(App)
-    .use(router)
+    // Pinia and Pinia Colada must be installed before the router: route data
+    // loaders fetch through Pinia Colada queries, which require them.
     .use(createPinia())
     .use(PiniaColada, {
         plugins: [
@@ -30,4 +32,9 @@ createApp(App)
             }),
         ],
     })
+    // The data loader plugin registers navigation guards, so it must be
+    // installed before the router: installing the router triggers the initial
+    // navigation.
+    .use(DataLoaderPlugin, { router })
+    .use(router)
     .mount("#app");
