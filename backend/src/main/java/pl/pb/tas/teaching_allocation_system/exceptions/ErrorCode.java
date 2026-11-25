@@ -1,11 +1,13 @@
 package pl.pb.tas.teaching_allocation_system.exceptions;
 
 import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Stable, machine-readable error codes returned by the API. Each code has a fixed
  * HTTP status and a safe default message that never contains internal details.
  */
+@Schema(description = "Readable API error code. See the API Error Catalog in Confluence for details.")
 public enum ErrorCode {
 
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Request validation failed."),

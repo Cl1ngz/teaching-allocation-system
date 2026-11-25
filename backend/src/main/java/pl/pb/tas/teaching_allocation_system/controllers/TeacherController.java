@@ -1,9 +1,10 @@
 package pl.pb.tas.teaching_allocation_system.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,22 +41,104 @@ public class TeacherController {
 			description = "Returns a paginated list with the active primary employment.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Paginated teacher list",
-					content = @Content(schema = @Schema(implementation = PageResponse.class))),
-			@ApiResponse(responseCode = "400", description = "Invalid pagination or sorting parameter",
+					content = @Content(mediaType = "application/json",
+							schema = @Schema(implementation = PageResponse.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid pagination/sorting parameter or malformed request (VALIDATION_ERROR, MALFORMED_REQUEST)",
 					content = @Content(mediaType = "application/problem+json",
-							schema = @Schema(implementation = ApiErrorResponse.class))),
-			@ApiResponse(responseCode = "404", description = "The endpoint does not exist",
+							schema = @Schema(implementation = ApiErrorResponse.class),
+							examples = {
+									@ExampleObject(name = "VALIDATION_ERROR", summary = "Invalid pagination or sort parameter", value = """
+											{
+											  "type": "about:blank",
+											  "title": "Bad Request",
+											  "status": 400,
+											  "detail": "Request validation failed.",
+											  "instance": "/api/v1/teachers",
+											  "code": "VALIDATION_ERROR",
+											  "timestamp": "2026-11-25T16:30:00Z",
+											  "errorId": "550e8400-e29b-41d4-a716-446655440000",
+											  "errors": [
+											    {
+											      "field": "listTeachers.page",
+											      "code": "Min",
+											      "message": "must be greater than or equal to 0"
+											    }
+											  ]
+											}
+											"""),
+									@ExampleObject(name = "MALFORMED_REQUEST", summary = "Wrong parameter type (e.g. page=abc)", value = """
+											{
+											  "type": "about:blank",
+											  "title": "Bad Request",
+											  "status": 400,
+											  "detail": "The request is malformed or unreadable.",
+											  "instance": "/api/v1/teachers",
+											  "code": "MALFORMED_REQUEST",
+											  "timestamp": "2026-11-25T16:30:05Z",
+											  "errorId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff"
+											}
+											""")
+							})),
+			@ApiResponse(responseCode = "404", description = "The endpoint does not exist (NOT_FOUND)",
 					content = @Content(mediaType = "application/problem+json",
-							schema = @Schema(implementation = ApiErrorResponse.class))),
-			@ApiResponse(responseCode = "405", description = "The HTTP method is not allowed",
+							schema = @Schema(implementation = ApiErrorResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "type": "about:blank",
+									  "title": "Not Found",
+									  "status": 404,
+									  "detail": "The requested resource was not found.",
+									  "instance": "/api/v1/unknown",
+									  "code": "NOT_FOUND",
+									  "timestamp": "2026-11-25T16:30:10Z",
+									  "errorId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301"
+									}
+									"""))),
+			@ApiResponse(responseCode = "405", description = "The HTTP method is not allowed (METHOD_NOT_ALLOWED)",
 					content = @Content(mediaType = "application/problem+json",
-							schema = @Schema(implementation = ApiErrorResponse.class))),
-			@ApiResponse(responseCode = "503", description = "Database unavailable",
+							schema = @Schema(implementation = ApiErrorResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "type": "about:blank",
+									  "title": "Method Not Allowed",
+									  "status": 405,
+									  "detail": "The HTTP method is not allowed for this resource.",
+									  "instance": "/api/v1/teachers",
+									  "code": "METHOD_NOT_ALLOWED",
+									  "timestamp": "2026-11-25T16:30:15Z",
+									  "errorId": "c9bf9e57-1685-4c89-bafb-ff5af830be8a"
+									}
+									"""))),
+			@ApiResponse(responseCode = "503", description = "Database unavailable (SERVICE_UNAVAILABLE)",
 					content = @Content(mediaType = "application/problem+json",
-							schema = @Schema(implementation = ApiErrorResponse.class))),
-			@ApiResponse(responseCode = "500", description = "Unexpected server error",
+							schema = @Schema(implementation = ApiErrorResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "type": "about:blank",
+									  "title": "Service Unavailable",
+									  "status": 503,
+									  "detail": "The service is temporarily unavailable. Try again later.",
+									  "instance": "/api/v1/teachers",
+									  "code": "SERVICE_UNAVAILABLE",
+									  "timestamp": "2026-11-25T16:30:25Z",
+									  "errorId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+									}
+									"""))),
+			@ApiResponse(responseCode = "500", description = "Unexpected server error (INTERNAL_ERROR)",
 					content = @Content(mediaType = "application/problem+json",
-							schema = @Schema(implementation = ApiErrorResponse.class)))
+							schema = @Schema(implementation = ApiErrorResponse.class),
+							examples = @ExampleObject(value = """
+									{
+									  "type": "about:blank",
+									  "title": "Internal Server Error",
+									  "status": 500,
+									  "detail": "An unexpected error occurred.",
+									  "instance": "/api/v1/teachers",
+									  "code": "INTERNAL_ERROR",
+									  "timestamp": "2026-11-25T16:30:30Z",
+									  "errorId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+									}
+									""")))
 	})
 	public ResponseEntity<PageResponse<TeacherListItem>> listTeachers(
 			@RequestParam(defaultValue = "0") @Min(0) int page,

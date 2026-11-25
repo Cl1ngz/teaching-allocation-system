@@ -24,9 +24,8 @@ Before merging a Pull Request to `dev`, ensure:
 - The code builds and automated tests pass.
 - All acceptance criteria from the ticket are met.
 - Documentation (README, setup and configuration guides) is updated to reflect any changes in behavior, endpoints, or configuration.
-- Changes are reviewed and merged into `dev` via Pull Request.
-
-# Backend database
+- Any new or modified API error or `ErrorCode` is documented in OpenAPI (`@ApiResponses` / `ApiErrorResponse`) and added to the API Error Catalog in Confluence (verified during PR review).
+- Changes are reviewed and merged into `dev` via Pull Request.# Backend database
 
 The backend requires a PostgreSQL database. Connection parameters are passed through
 environment variables (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`,
