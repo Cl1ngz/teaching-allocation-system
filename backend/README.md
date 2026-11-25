@@ -9,6 +9,8 @@ Backend service for the Teaching Allocation System built with Spring Boot and Ja
 
 ## Running the Application
 
+Local environment variables can be kept in `backend/.env` (see `backend/.env.example`). Spring loads `backend/.env` automatically whether you start the backend from `backend/` or the repository root.
+
 To start the backend application locally:
 
 ```bash
@@ -42,7 +44,7 @@ To run the automated test suite:
 
 Basic diagnostic endpoint to verify backend operation and HTTP connectivity between the frontend and server.
 
-- **URL:** `/api/hello`
+- **URL:** `/api/v1/hello`
 - **Method:** `GET`
 - **Authentication:** None (Public)
 - **Response HTTP Code:** `200 OK`
