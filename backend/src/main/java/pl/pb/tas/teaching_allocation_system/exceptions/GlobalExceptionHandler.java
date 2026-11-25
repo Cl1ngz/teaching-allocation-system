@@ -1,5 +1,6 @@
 package pl.pb.tas.teaching_allocation_system.exceptions;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -60,7 +61,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorCode code = ex.getErrorCode();
         String errorId = newErrorId();
         logIssue(errorId, code, code.getStatus(), ex, request);
-        return respond(problem(code, code.getStatus(), ex.getMessage(), List.of(), errorId));
+        String message = code == ErrorCode.VALIDATION_ERROR ? code.getDefaultMessage() : ex.getMessage();
+        return respond(problem(code, code.getStatus(), message, List.of(), errorId, request));
     }
 
     /** Database unavailable (no connection, cannot start a transaction). */
@@ -98,7 +100,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorCode code = ErrorCode.VALIDATION_ERROR;
         String errorId = newErrorId();
         logIssue(errorId, code, code.getStatus(), ex, request);
-        ProblemDetail problem = problem(code, code.getStatus(), code.getDefaultMessage(), fields, errorId);
+        ProblemDetail problem = problem(code, code.getStatus(), code.getDefaultMessage(), fields, errorId, request);
         return super.handleExceptionInternal(ex, problem, headers, code.getStatus(), request);
     }
 
@@ -114,7 +116,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorCode code = ErrorCode.VALIDATION_ERROR;
         String errorId = newErrorId();
         logIssue(errorId, code, code.getStatus(), ex, request);
-        return respond(problem(code, code.getStatus(), code.getDefaultMessage(), fields, errorId));
+        return respond(problem(code, code.getStatus(), code.getDefaultMessage(), fields, errorId, request));
     }
 
     /** All other framework exceptions (404, 405, unreadable body, wrong parameter type, ...). */
@@ -131,7 +133,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorCode code = codeFor(ex, statusCode);
         String errorId = newErrorId();
         logIssue(errorId, code, statusCode, ex, request);
-        ProblemDetail problem = problem(code, statusCode, code.getDefaultMessage(), List.of(), errorId);
+        ProblemDetail problem = problem(code, statusCode, code.getDefaultMessage(), List.of(), errorId, request);
         return super.handleExceptionInternal(ex, problem, headers, statusCode, request);
     }
 
@@ -151,7 +153,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private ResponseEntity<Object> respondWithDefault(ErrorCode code, Exception ex, WebRequest request) {
         String errorId = newErrorId();
         logIssue(errorId, code, code.getStatus(), ex, request);
-        return respond(problem(code, code.getStatus(), code.getDefaultMessage(), List.of(), errorId));
+        return respond(problem(code, code.getStatus(), code.getDefaultMessage(), List.of(), errorId, request));
     }
 
     private static ResponseEntity<Object> respond(ProblemDetail problem) {
@@ -159,8 +161,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private ProblemDetail problem(ErrorCode code, HttpStatusCode status, String message,
-            List<ApiFieldError> fields, String errorId) {
+            List<ApiFieldError> fields, String errorId, WebRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, message);
+        String description = request.getDescription(false);
+        if (description.startsWith("uri=")) {
+            problem.setInstance(URI.create(description.substring("uri=".length())));
+        }
         problem.setProperty(CODE, code.name());
         problem.setProperty(TIMESTAMP, Instant.now(clock).toString());
         problem.setProperty(ERROR_ID, errorId);

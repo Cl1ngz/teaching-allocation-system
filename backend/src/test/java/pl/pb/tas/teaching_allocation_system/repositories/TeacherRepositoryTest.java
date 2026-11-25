@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -80,6 +82,7 @@ class TeacherRepositoryTest {
     private Teacher withPrimary;
     private Teacher withSecondaryOnly;
     private Teacher withoutEmployment;
+    private Teacher inactiveWithoutEmployment;
 
     @BeforeEach
     void setUp() {
@@ -93,6 +96,9 @@ class TeacherRepositoryTest {
         withPrimary = teacherRepository.save(new Teacher(doctor, "Anna", "Aaa-Test", "anna.aaa@test.example"));
         withSecondaryOnly = teacherRepository.save(new Teacher(doctor, "Bartosz", "Bbb-Test", "bartosz.bbb@test.example"));
         withoutEmployment = teacherRepository.save(new Teacher(doctor, "Celina", "Ccc-Test", "celina.ccc@test.example"));
+        inactiveWithoutEmployment = new Teacher(doctor, "Daria", "Ddd-Test", "daria.ddd@test.example");
+        inactiveWithoutEmployment.setActive(false);
+        inactiveWithoutEmployment = teacherRepository.save(inactiveWithoutEmployment);
 
         employmentRepository.save(new Employment(withPrimary, department, adjunct,
                 EmployeeGroup.RESEARCH_TEACHING, EmploymentType.PRIMARY,
@@ -116,7 +122,7 @@ class TeacherRepositoryTest {
     void summariesContainDegreeAndCurrentPrimaryEmployment() {
         Map<Long, TeacherSummary> byId = ownSummaries(teacherRepository.findAllSummaries(TODAY));
 
-        assertThat(byId).hasSize(3);
+        assertThat(byId).hasSize(4);
 
         TeacherSummary primary = byId.get(withPrimary.getId());
         assertThat(primary.degreeCode()).isEqualTo("DR");
@@ -126,6 +132,35 @@ class TeacherRepositoryTest {
         assertThat(byId.get(withSecondaryOnly.getId()).unitName()).isNull();
         assertThat(byId.get(withoutEmployment.getId()).unitName()).isNull();
         assertThat(byId.get(withoutEmployment.getId()).degreeName()).isEqualTo("doktor");
+        assertThat(byId.get(inactiveWithoutEmployment.getId()).active()).isFalse();
+        assertThat(byId.get(inactiveWithoutEmployment.getId()).unitName()).isNull();
+    }
+
+    @Test
+    @DisplayName("Paginated teacher summaries include stable page metadata")
+    void summariesArePaginatedInTheDatabase() {
+        Page<TeacherSummary> firstPage = teacherRepository.findSummaries(TODAY, PageRequest.of(0, 2));
+        Page<TeacherSummary> secondPage = teacherRepository.findSummaries(TODAY, PageRequest.of(1, 2));
+
+        assertThat(firstPage.getContent()).hasSize(2);
+        assertThat(firstPage.getTotalElements()).isEqualTo(4);
+        assertThat(firstPage.getTotalPages()).isEqualTo(2);
+        assertThat(secondPage.getContent()).hasSize(2);
+        assertThat(secondPage.getNumber()).isEqualTo(1);
+        assertThat(secondPage.getTotalElements()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("An empty teachers table returns an empty page")
+    void emptyTeacherTableReturnsEmptyPage() {
+        employmentRepository.deleteAll();
+        teacherRepository.deleteAll();
+
+        Page<TeacherSummary> result = teacherRepository.findSummaries(TODAY, PageRequest.of(0, 20));
+
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getTotalPages()).isZero();
     }
 
     @Test
@@ -185,7 +220,9 @@ class TeacherRepositoryTest {
     }
 
     private Map<Long, TeacherSummary> ownSummaries(List<TeacherSummary> summaries) {
-        Set<Long> ownIds = Set.of(withPrimary.getId(), withSecondaryOnly.getId(), withoutEmployment.getId());
+        Set<Long> ownIds = Set.of(
+                withPrimary.getId(), withSecondaryOnly.getId(), withoutEmployment.getId(),
+                inactiveWithoutEmployment.getId());
         return summaries.stream()
                 .filter(summary -> ownIds.contains(summary.id()))
                 .collect(Collectors.toMap(TeacherSummary::id, Function.identity()));

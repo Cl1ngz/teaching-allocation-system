@@ -28,6 +28,9 @@ For a local run, optionally keep them in `backend/.env` (see `backend/.env.examp
 
 Full setup guide: [backend/docs/database-setup.md](backend/docs/database-setup.md)
 
+Teacher-list integration scenarios and verification results:
+[docs/teacher-list-integration-test.md](docs/teacher-list-integration-test.md)
+
 Check the database connection of a running backend with:
 
 ```bash
@@ -97,4 +100,3 @@ To stop, remove the containers, and completely wipe the database data (environme
 ```bash
 docker compose down -v
 ```
-
