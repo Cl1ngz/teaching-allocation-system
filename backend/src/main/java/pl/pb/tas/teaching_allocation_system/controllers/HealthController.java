@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pl.pb.tas.teaching_allocation_system.exceptions.ApiErrorResponse;
 import pl.pb.tas.teaching_allocation_system.models.HealthResponse;
+import pl.pb.tas.teaching_allocation_system.models.HelloResponse;
 import pl.pb.tas.teaching_allocation_system.services.HealthCheckService;
 
 @RestController
@@ -30,9 +31,12 @@ public class HealthController {
             summary = "Application health check",
             description = "Returns basic application health status (does not check the database connection; use /actuator/health for database status).")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Application is running",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = HealthResponse.class))),
+            @ApiResponse(responseCode = "200", description = "API is reachable",
+        content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = HelloResponse.class),
+                examples = @ExampleObject(value = """
+                        { "message": "Teaching Allocation System API" }
+                        """))),
             @ApiResponse(responseCode = "405", description = "HTTP method not allowed (METHOD_NOT_ALLOWED)",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiErrorResponse.class),
