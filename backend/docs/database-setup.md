@@ -81,7 +81,7 @@ SPRING_DATASOURCE_USERNAME=tas_user
 SPRING_DATASOURCE_PASSWORD=tas_password
 ```
 
-Plik `.env` jest w `.gitignore` i **nie może trafić do repozytorium**. Backend wczytuje go automatycznie (`spring.config.import`), ale tylko wtedy, gdy jest uruchamiany z katalogu `backend/`.
+Plik `.env` jest w `.gitignore` i **nie może trafić do repozytorium**. Backend wczytuje go automatycznie (`spring.config.import`)`.
 
 ### Opcja B: zmienne w sesji PowerShell
 
@@ -132,14 +132,15 @@ Testy repozytoriów (np. `TeacherRepositoryTest`) działają na prawdziwym Postg
 
 ## 9. Rozwiązywanie problemów
 
+
 | Objaw | Przyczyna | Rozwiązanie |
 |-------|-----------|-------------|
-| `Could not resolve placeholder 'SPRING_DATASOURCE_USERNAME'` | Nie ustawiono zmiennych | Utwórz `backend/.env` lub ustaw zmienne w sesji/IDE |
+| `FATAL: password authentication failed for user "${SPRING_DATASOURCE_USERNAME}"` | Nie ustawiono zmiennych — nierozwiązany placeholder trafia do PostgreSQL jako dosłowny tekst | Utwórz `backend/.env` lub ustaw zmienne w sesji/IDE |
 | `UnknownHostException: db` | W URL jest host `db` (konfiguracja Dockera) | Użyj `localhost` w `SPRING_DATASOURCE_URL` |
 | `Connection to localhost:5432 refused` | Usługa PostgreSQL nie działa lub inny port | `Get-Service postgresql*`, uruchom usługę, sprawdź port w `SPRING_DATASOURCE_URL` |
 | `password authentication failed for user "tas_user"` | Złe hasło | Ustaw to samo hasło w bazie i w `SPRING_DATASOURCE_PASSWORD` (`ALTER USER tas_user WITH PASSWORD '...';`) |
 | `database "tas_db" does not exist` | Baza nie została utworzona | Wykonaj kroki z sekcji 3 |
-| `.env` jest ignorowany | Backend uruchomiony nie z katalogu `backend/` | Uruchom z `backend/` lub ustaw zmienne w sesji/IDE |
+| `.env` jest ignorowany | Backend uruchomiony z innego katalogu niż `backend/` lub katalog główny repozytorium | Uruchom z `backend/` albo z katalogu głównego repozytorium, albo ustaw zmienne w sesji/IDE |
 | `/actuator/health` zwraca `DOWN` | Brak połączenia z bazą | Sprawdź logi aplikacji i parametry z sekcji 4 |
 | `docker compose up`: port 5432 zajęty | Lokalny PostgreSQL działa na tym samym porcie | Zobacz sekcję 7 |
 | `psql` nie jest rozpoznawane | Brak w `PATH` | Dodaj `C:\Program Files\PostgreSQL\<wersja>\bin` do `PATH` |

@@ -19,12 +19,20 @@ git checkout -b feat/your-feature-name
 ## Commits name
 `feat(TICKET-ID): description`
 
+## Definition of Done
+Before merging a Pull Request to `dev`, ensure:
+- The code builds and automated tests pass.
+- All acceptance criteria from the ticket are met.
+- Documentation (README, setup and configuration guides) is updated to reflect any changes in behavior, endpoints, or configuration.
+- Changes are reviewed and merged into `dev` via Pull Request.
+
 # Backend database
 
 The backend requires a PostgreSQL database. Connection parameters are passed through
 environment variables (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`,
 `SPRING_DATASOURCE_PASSWORD`), the same ones `compose.yaml` provides in Docker.
 For a local run, optionally keep them in `backend/.env` (see `backend/.env.example`).
+Spring loads it automatically whether started from `backend/` or the repository root.
 
 Full setup guide: [backend/docs/database-setup.md](backend/docs/database-setup.md)
 
