@@ -17,7 +17,6 @@
                                 <th scope="col">Stopień</th>
                                 <th scope="col">Jednostka</th>
                                 <th scope="col">Stanowisko</th>
-                                <th scope="col">E-mail</th>
                                 <th scope="col">Status</th>
                             </tr>
                         </thead>
@@ -30,10 +29,7 @@
                                 <td>{{ teacher.firstName }} {{ teacher.lastName }}</td>
                                 <td>{{ teacher.degreeName }}</td>
                                 <td>{{ teacher.unitName ?? "Brak zatrudnienia" }}</td>
-                                <td>{{ teacher.positionName ?? "—" }}</td>
-                                <td>
-                                    <a :href="`mailto:${teacher.email}`">{{ teacher.email }}</a>
-                                </td>
+                                <td>{{ teacher.positionName ?? "-" }}</td>
                                 <td>{{ teacher.active ? "Aktywny" : "Nieaktywny" }}</td>
                             </tr>
                         </tbody>
