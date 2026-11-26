@@ -3,7 +3,6 @@
 Instrukcja przygotowania lokalnej bazy danych i połączenia z nią dla backendu Teaching Allocation System.
 
 > Zakres: instalacja PostgreSQL, utworzenie bazy i użytkownika oraz konfiguracja połączenia przez zmienne środowiskowe.
-> Schemat bazy (tabele, encje, migracje) jest realizowany w osobnych zadaniach. Uruchamianie całości w Dockerze opisuje `compose.yaml`.
 
 ## 1. Wymagania
 
@@ -82,7 +81,7 @@ SPRING_DATASOURCE_USERNAME=tas_user
 SPRING_DATASOURCE_PASSWORD=tas_password
 ```
 
-Plik `.env` jest w `.gitignore` i **nie może trafić do repozytorium**. Backend wczytuje go automatycznie (`spring.config.import`), ale tylko wtedy, gdy jest uruchamiany z katalogu `backend/`.
+Plik `.env` jest w `.gitignore` i **nie może trafić do repozytorium**. Backend wczytuje go automatycznie (`spring.config.import`)`.
 
 ### Opcja B: zmienne w sesji PowerShell
 
@@ -106,7 +105,7 @@ cd backend
 
 Połączenie działa poprawnie, jeśli:
 
-1. Aplikacja startuje bez błędów, a w logach nie ma wyjątków związanych z `HikariPool` ani `PSQLException`.
+1. Aplikacja startuje bez błędów, a w logach nie ma wyjątków związanych z `HikariPool` ani `PSQLException`. Przy pierwszym starcie na pustej bazie Flyway tworzy schemat (wpisy `Migrating schema "public" to version ...`).
 2. Endpoint health zwraca status `UP`:
 
 ```powershell
@@ -127,18 +126,45 @@ Gdy baza przestanie odpowiadać po starcie aplikacji, status zmieni się na `DOW
 
 ## 8. Testy automatyczne
 
-Test `contextLoads` korzysta z profilu `test`, w którym konfiguracja bazy jest wyłączona, więc `.\mvnw.cmd test` nie wymaga uruchomionego PostgreSQL. Testy integracyjne z bazą są przedmiotem zadania SF-12.
+Test `contextLoads` korzysta z profilu `test`, w którym konfiguracja bazy i migracje Flyway są wyłączone, więc `.\mvnw.cmd test` nie wymaga uruchomionego PostgreSQL. Testy integracyjne z bazą są przedmiotem zadania SF-12.
+
+Testy repozytoriów (np. `TeacherRepositoryTest`) działają na prawdziwym PostgreSQL: Testcontainers uruchamia na czas testów pustą bazę w kontenerze, Flyway wykonuje na niej migracje, a Hibernate sprawdza zgodność encji ze schematem. Wymagają działającego Docker Desktop; bez Dockera są pomijane, a pozostałe testy działają dalej.
 
 ## 9. Rozwiązywanie problemów
 
+
 | Objaw | Przyczyna | Rozwiązanie |
 |-------|-----------|-------------|
-| `Could not resolve placeholder 'SPRING_DATASOURCE_USERNAME'` | Nie ustawiono zmiennych | Utwórz `backend/.env` lub ustaw zmienne w sesji/IDE |
+| `FATAL: password authentication failed for user "${SPRING_DATASOURCE_USERNAME}"` | Nie ustawiono zmiennych — nierozwiązany placeholder trafia do PostgreSQL jako dosłowny tekst | Utwórz `backend/.env` lub ustaw zmienne w sesji/IDE |
 | `UnknownHostException: db` | W URL jest host `db` (konfiguracja Dockera) | Użyj `localhost` w `SPRING_DATASOURCE_URL` |
 | `Connection to localhost:5432 refused` | Usługa PostgreSQL nie działa lub inny port | `Get-Service postgresql*`, uruchom usługę, sprawdź port w `SPRING_DATASOURCE_URL` |
 | `password authentication failed for user "tas_user"` | Złe hasło | Ustaw to samo hasło w bazie i w `SPRING_DATASOURCE_PASSWORD` (`ALTER USER tas_user WITH PASSWORD '...';`) |
 | `database "tas_db" does not exist` | Baza nie została utworzona | Wykonaj kroki z sekcji 3 |
-| `.env` jest ignorowany | Backend uruchomiony nie z katalogu `backend/` | Uruchom z `backend/` lub ustaw zmienne w sesji/IDE |
+| `.env` jest ignorowany | Backend uruchomiony z innego katalogu niż `backend/` lub katalog główny repozytorium | Uruchom z `backend/` albo z katalogu głównego repozytorium, albo ustaw zmienne w sesji/IDE |
 | `/actuator/health` zwraca `DOWN` | Brak połączenia z bazą | Sprawdź logi aplikacji i parametry z sekcji 4 |
 | `docker compose up`: port 5432 zajęty | Lokalny PostgreSQL działa na tym samym porcie | Zobacz sekcję 7 |
 | `psql` nie jest rozpoznawane | Brak w `PATH` | Dodaj `C:\Program Files\PostgreSQL\<wersja>\bin` do `PATH` |
+
+## 10. Migracje schematu (Flyway)
+
+Tabele tworzy Flyway przy starcie backendu z plików w `src/main/resources/db/migration`. Wykonane migracje zapisuje w tabeli `flyway_schema_history`, więc przy kolejnym starcie uruchamia tylko nowe. Pliki odpowiadają obszarom modelu danych z Confluence: `V1`–`V2` struktura i kadra (SF-14), `V3`–`V9` pozostałe obszary (SF-15).
+
+Nowa migracja to kolejny plik `V<numer>__<opis>.sql`, np. `V10__add_course_language.sql`. Migracji scalonej do `dev` nie edytujemy: Flyway porówna sumę kontrolną i aplikacja nie wystartuje. Zmiany robimy następną migracją.
+
+Gdy lokalna baza jest w złym stanie (np. po zmianie niescalonej migracji): `docker compose down -v` albo `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`.
+
+## 11. Dane przykładowe (profil `dev`)
+
+Słowniki (stopnie, stanowiska, formy zajęć) ładują się zawsze. Dane przykładowe, czyli 7 jednostek, 15 fikcyjnych nauczycieli i ich zatrudnienia, ładują się tylko z profilem `dev`. Plik `src/main/resources/db/dev-data/R__dev_sample_data.sql` opisuje w komentarzu, które rekordy są przypadkami brzegowymi. Każdy rekord przykładowy ma `usos_id` zaczynające się od `DEV-`.
+
+**Włączenie.** W Dockerze w pliku `.env` ustaw `SPRING_PROFILES_ACTIVE=dev`. Jeśli masz starszy `.env`, dopisz tę linię z `.env.example`. Lokalnie: `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"` albo w IntelliJ w konfiguracji uruchomienia *Active profiles: dev*. Bez profilu baza ma tylko słowniki.
+
+**Odświeżenie.** Zmiana pliku `R__dev_sample_data.sql` powoduje, że przy następnym starcie z `dev` Flyway uruchomi go ponownie i doda brakujące rekordy, bez duplikatów. Żeby przywrócić dane do stanu początkowego, usuń je (niżej) i uruchom backend z `dev`.
+
+**Usunięcie** (schemat i słowniki zostają):
+
+```powershell
+Get-Content backend/docs/dev-sample-data-cleanup.sql | docker exec -i tas-db psql -U tas_user -d tas_db
+```
+
+Lokalnie: `psql -U tas_user -h localhost -d tas_db -f backend/docs/dev-sample-data-cleanup.sql`. Pełny reset bazy: `docker compose down -v`.

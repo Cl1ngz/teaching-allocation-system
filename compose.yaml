@@ -25,6 +25,8 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # "dev" loads sample data (SF-16); empty = dictionaries only.
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
     ports:
       - "8080:8080"
     depends_on:
@@ -35,8 +37,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        TAS_API_URL: "http://localhost:8080/api"
     container_name: tas-frontend
     ports:
       - "80:80"
